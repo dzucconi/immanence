@@ -73,12 +73,11 @@ class Immanence
       def call(e)
         call = caller(e)
 
-        s = methods.grep(/immanent_/).map { |method|
+        receiver = methods.grep(/immanent_/).map { |method|
           { m: method, s: Immanence.levenshtein(method, conjugate(call[:method], call[:path])) }
-        }
-        w = s.min_by { |h| h[:s] }
+        }.min_by { |x| x[:s] }
 
-        self.send(w[:m])
+        self.send(receiver[:m])
       end
     end
   end

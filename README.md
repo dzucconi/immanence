@@ -6,7 +6,7 @@ class App < Immanence::Control
     re out object
   end
 
-  route :new, "/new" do
+  route :get, "/new" do
     re "new"
   end
 end

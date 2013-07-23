@@ -23,7 +23,7 @@ class Immanence
           matrix[i][j] = [
             matrix[i-1][j],
             matrix[i][j-1],
-            matrix[i-1][j-1],
+            matrix[i-1][j-1]
           ].min + 1
         end
       end
@@ -49,6 +49,7 @@ class Immanence
   class Control
     class << self
       def re(*args); Render.re(*args) end
+      def out(o); O.call(o) end
 
       def route(verb, path, &blk)
         meta_def(conjugate(verb, path)) { instance_eval(&blk) }
@@ -79,7 +80,9 @@ end
 
 class App < Immanence::Control
   route :get, "/hello" do
-    re "hello world"
+    object = { hello: "World" }
+
+    re out object
   end
 
   route :new, "/new" do

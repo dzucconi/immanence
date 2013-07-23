@@ -58,12 +58,6 @@ class Immanence
         "immanent_#{verb}_#{path}"
       end
 
-      def compile(path)
-        [].tap do |xs|
-          path.gsub(/((:\w+)|\*)/) { |xs| xs << $2[1..-1] }
-        end
-      end
-
       def caller(e)
         { method: e["REQUEST_METHOD"].downcase,
           path: e["PATH_INFO"],

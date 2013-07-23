@@ -60,7 +60,7 @@ class Immanence
 
       def compile(path)
         [].tap do |xs|
-          path.gsub(/((:\w+)|\*)/) { |_| xs << $2[1..-1] }
+          path.gsub(/((:\w+)|\*)/) { |xs| xs << $2[1..-1] }
         end
       end
 

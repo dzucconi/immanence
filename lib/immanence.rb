@@ -8,9 +8,7 @@ class Immanence
   I =->(i){ Oj.load(i) }
   O =->(o){ Oj.dump(o, mode: :compat) }
 
-  PROBLEM = "[...] from a problem to the accidents that condition and resolve it."
-
-  def self.levenshtein(a, b)
+  LEVENSHTEIN =->(a, b){
     matrix = [(0..a.length).to_a]
 
     (1..b.length).each do |j|
@@ -32,7 +30,9 @@ class Immanence
     end
 
     matrix.last.last
-  end
+  }
+
+  PROBLEM = "[...] from a problem to the accidents that condition and resolve it."
 
   class Render
     def self.re(bdy=:ok, opts={}, hdrs={})
@@ -68,7 +68,7 @@ class Immanence
         call = caller(e)
 
         receiver = methods.grep(/immanent_/).map { |method|
-          { m: method, s: Immanence.levenshtein(method, conjugate(call[:method], call[:path])) }
+          { m: method, s: LEVENSHTEIN.call(method, conjugate(call[:method], call[:path])) }
         }.min_by { |x| x[:s] }
 
         self.send(receiver[:m])

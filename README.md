@@ -16,4 +16,5 @@ end
   GET /hello #=> {"hello":"World"}
   GET /hi    #=> {"hello":"World"}
   GET /new   #=> "new"
+  GET /      #=> "new"
 ```

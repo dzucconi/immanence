@@ -49,6 +49,7 @@ class Immanence
   class Control
     class << self
       def re(*args); Render.re(*args) end
+
       def out(o); O[o] end
 
       def route(verb, path, &blk)
@@ -60,9 +61,9 @@ class Immanence
       end
 
       def caller(e)
-        { method: e["REQUEST_METHOD"].downcase,
-          path: e["PATH_INFO"],
-          data: I[e["rack.input"].read] }
+        { method:   e["REQUEST_METHOD"].downcase,
+          path:     e["PATH_INFO"],
+          data:     I[e["rack.input"].read] }
       end
 
       def call(e)

@@ -5,31 +5,31 @@ require "./lib/core_ext/hash"
 require "./lib/core_ext/object"
 
 class Immanence
-  I =->(i){ Oj.load(i) }
-  O =->(o){ Oj.dump(o, mode: :compat) }
+  I =-> i { Oj.load(i) }
+  O =-> o { Oj.dump(o, mode: :compat) }
 
-  LEVENSHTEIN =->(a, b){
-    matrix = [(0..a.length).to_a]
+  LEVENSHTEIN =-> a, b {
+    mx = [(0..a.size).to_a]
 
-    (1..b.length).each do |j|
-      matrix << [j] + [0] * (a.length)
+    (1..b.size).each do |j|
+      mx << [j] + [0] * (a.size)
     end
 
-    (1..b.length).each do |i|
-      (1..a.length).each do |j|
+    (1..b.size).each do |i|
+      (1..a.size).each do |j|
         if a[j-1] == b[i-1]
-          matrix[i][j] = matrix[i-1][j-1]
+          mx[i][j] = mx[i-1][j-1]
         else
-          matrix[i][j] = [
-            matrix[i-1][j],
-            matrix[i][j-1],
-            matrix[i-1][j-1]
+          mx[i][j] = [
+            mx[i-1][j],
+            mx[i][j-1],
+            mx[i-1][j-1]
           ].min + 1
         end
       end
     end
 
-    matrix.last.last
+    mx[-1][-1]
   }
 
   PROBLEM = "[...] from a problem to the accidents that condition and resolve it."

@@ -68,6 +68,10 @@ class Immanence
           symbolize_keys
       end
 
+      def params
+        @params
+      end
+
       def deconjugate(method)
         method.to_s.gsub(/immanent_\w*_/, "")
       end
@@ -97,22 +101,22 @@ class Immanence
   end
 end
 
-# class App < Immanence::Control
-#   route :get, "/notes/:id" do
-#     re out @params[:id]
-#   end
+class App < Immanence::Control
+  route :get, "/notes/:id" do
+    re out params[:id]
+  end
 
-#   route :get, "/notes/:note_id/paragraphs/:id" do
-#     re out @params
-#   end
+  route :get, "/notes/:note_id/paragraphs/:id" do
+    re out params
+  end
 
-#   route :get, "/hello" do
-#     object = { hello: "World" }
+  route :get, "/hello" do
+    object = { hello: "World" }
 
-#     re out object
-#   end
+    re out object
+  end
 
-#   route :get, "/new" do
-#     re "new"
-#   end
-# end
+  route :get, "/new" do
+    re "new"
+  end
+end

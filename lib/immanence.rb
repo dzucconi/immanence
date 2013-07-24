@@ -39,7 +39,7 @@ class Immanence
       opts.reverse_merge!({ status: 200 })
       hdrs.reverse_merge!({
         "Content-Type"      => "text/json",
-        "Content-Length"    => (bdy.size.to_s rescue "0")
+        "Content-Length"    => ("#{bdy.size}" rescue "0")
       })
 
       [opts[:status], hdrs, [bdy]]
@@ -56,12 +56,28 @@ class Immanence
         meta_def(conjugate(verb, path)) { instance_eval(&blk) }
       end
 
+      def ascertain(method, path)
+        deconjugate(method).
+          split("/")[1..-1].
+          zip(path.split("/")[1..-1]).
+          collect do |x, y|
+            { x[1..-1] => y } if x[0] == ":"
+          end.
+          compact.
+          reduce({}, :merge).
+          symbolize_keys
+      end
+
+      def deconjugate(method)
+        method.to_s.gsub(/immanent_\w*_/, "")
+      end
+
       def conjugate(verb, path)
         "immanent_#{verb}_#{path}"
       end
 
       def caller(e)
-        { method:     e["REQUEST_METHOD"].downcase,
+        { verb:       e["REQUEST_METHOD"].downcase,
           path:       e["PATH_INFO"],
           data:     I[e["rack.input"].read] }
       end
@@ -70,8 +86,10 @@ class Immanence
         call = caller(e)
 
         receiver = methods.grep(/immanent_/).map { |method|
-          { method: method, score: LEVENSHTEIN[method, conjugate(call[:method], call[:path])] }
+          { method: method, score: LEVENSHTEIN[method, conjugate(call[:verb], call[:path])] }
         }.min_by { |x| x[:score] }
+
+        @params = ascertain(receiver[:method], call[:path])
 
         self.send(receiver[:method])
       end
@@ -79,18 +97,22 @@ class Immanence
   end
 end
 
-class App < Immanence::Control
-  route :get, "/notes/:id" do
-    re out "id"
-  end
+# class App < Immanence::Control
+#   route :get, "/notes/:id" do
+#     re out @params[:id]
+#   end
 
-  route :get, "/hello" do
-    object = { hello: "World" }
+#   route :get, "/notes/:note_id/paragraphs/:id" do
+#     re out @params
+#   end
 
-    re out object
-  end
+#   route :get, "/hello" do
+#     object = { hello: "World" }
 
-  route :get, "/new" do
-    re "new"
-  end
-end
+#     re out object
+#   end
+
+#   route :get, "/new" do
+#     re "new"
+#   end
+# end

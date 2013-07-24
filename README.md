@@ -1,4 +1,4 @@
-#<del>M</del>VC <del>MV</del>C
+#MVC <del>M</del>VC <del>MV</del>C
 
 ```ruby
 class App < Immanence::Control

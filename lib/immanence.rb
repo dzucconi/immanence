@@ -49,7 +49,7 @@ class Immanence
   class Control
     class << self
       def re(*args); Render.re(*args) end
-      def out(o); O.call(o) end
+      def out(o); O[o] end
 
       def route(verb, path, &blk)
         meta_def(conjugate(verb, path)) { instance_eval(&blk) }
@@ -62,14 +62,14 @@ class Immanence
       def caller(e)
         { method: e["REQUEST_METHOD"].downcase,
           path: e["PATH_INFO"],
-          data: I.call(e["rack.input"].read) }
+          data: I[e["rack.input"].read] }
       end
 
       def call(e)
         call = caller(e)
 
         receiver = methods.grep(/immanent_/).map { |method|
-          { m: method, s: LEVENSHTEIN.call(method, conjugate(call[:method], call[:path])) }
+          { m: method, s: LEVENSHTEIN[method, conjugate(call[:method], call[:path])] }
         }.min_by { |x| x[:s] }
 
         self.send(receiver[:m])

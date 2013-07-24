@@ -60,10 +60,9 @@ class Immanence
         deconjugate(method).
           split("/")[1..-1].
           zip(path.split("/")[1..-1]).
-          collect do |x, y|
+          map { |x, y|
             { x[1..-1] => y } if x[0] == ":"
-          end.
-          compact.
+          }.compact.
           reduce({}, :merge).
           symbolize_keys
       end

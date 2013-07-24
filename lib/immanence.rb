@@ -94,7 +94,7 @@ class Immanence
 
         @params = ascertain(receiver[:method], call[:path])
 
-        self.send(receiver[:method])
+        send(receiver[:method])
       end
     end
   end

@@ -61,8 +61,8 @@ class Immanence
       end
 
       def caller(e)
-        { method:   e["REQUEST_METHOD"].downcase,
-          path:     e["PATH_INFO"],
+        { method:     e["REQUEST_METHOD"].downcase,
+          path:       e["PATH_INFO"],
           data:     I[e["rack.input"].read] }
       end
 
@@ -70,16 +70,20 @@ class Immanence
         call = caller(e)
 
         receiver = methods.grep(/immanent_/).map { |method|
-          { m: method, s: LEVENSHTEIN[method, conjugate(call[:method], call[:path])] }
-        }.min_by { |x| x[:s] }
+          { method: method, score: LEVENSHTEIN[method, conjugate(call[:method], call[:path])] }
+        }.min_by { |x| x[:score] }
 
-        self.send(receiver[:m])
+        self.send(receiver[:method])
       end
     end
   end
 end
 
 class App < Immanence::Control
+  route :get, "/notes/:id" do
+    re out "id"
+  end
+
   route :get, "/hello" do
     object = { hello: "World" }
 

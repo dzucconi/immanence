@@ -1,3 +1,5 @@
+#<del>M</del>VC <del>MV</del>C
+
 ```ruby
 class App < Immanence::Control
   route :get, "/hello" do

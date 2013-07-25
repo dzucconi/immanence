@@ -1,8 +1,8 @@
 require "rack"
 require "oj"
 
-require "./lib/core_ext/hash"
-require "./lib/core_ext/object"
+require "core_ext/hash"
+require "core_ext/object"
 
 module Immanence
   class Request < Struct.new(:verb, :path, :input); end

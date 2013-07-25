@@ -2,21 +2,22 @@
 
 ```ruby
 class App < Immanence::Control
+  route :get, "/notes/:id" do
+    self >> { id: @params[:id] }
+  end
+
+  route :get, "/notes/:note_id/paragraphs/:id" do
+    self >> params
+  end
+
   route :get, "/hello" do
     object = { hello: "World" }
 
-    re out object
+    self >> object
   end
 
   route :get, "/new" do
-    re "new"
+    self >> "new"
   end
 end
-```
-
-```
-  GET /hello #=> {"hello":"World"}
-  GET /hi    #=> {"hello":"World"}
-  GET /new   #=> "new"
-  GET /      #=> "new"
 ```

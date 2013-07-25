@@ -5,59 +5,59 @@ require "./lib/core_ext/hash"
 require "./lib/core_ext/object"
 
 class Immanence
-  I =-> i { Oj.load(i) }
-  O =-> o { Oj.dump(o, mode: :compat) }
-
-  LEVENSHTEIN =-> a, b {
-    mx = [(0..a.size).to_a]
-
-    (1..b.size).each do |j|
-      mx << [j] + [0] * (a.size)
-    end
-
-    (1..b.size).each do |i|
-      (1..a.size).each do |j|
-        if a[j-1] == b[i-1]
-          mx[i][j] = mx[i-1][j-1]
-        else
-          mx[i][j] = [
-            mx[i-1][j],
-            mx[i][j-1],
-            mx[i-1][j-1]
-          ].min + 1
-        end
-      end
-    end
-
-    mx[-1][-1]
-  }
-
-  PROBLEM = "[...] from a problem to the accidents that condition and resolve it."
-
-  class Render
-    def self.re(bdy=:ok, opts={}, hdrs={})
-      opts.reverse_merge!({ status: 200 })
-      hdrs.reverse_merge!({
-        "Content-Type"      => "text/json",
-        "Content-Length"    => ("#{bdy.size}" rescue "0")
-      })
-
-      [opts[:status], hdrs, [bdy]]
-    end
-  end
+  class Request < Struct.new(:verb, :path, :input); end
 
   class Control
-    class << self
-      def re(*args); Render.re(*args) end
+    I =-> i { Oj.load(i) }
+    O =-> o { Oj.dump(o, mode: :compat) }
 
-      def out(o); O[o] end
+    PROBLEM = "[...] from a problem to the accidents that condition and resolve it."
+
+    LEVENSHTEIN =-> a, b {
+      mx = [(0..a.size).to_a]
+
+      (1..b.size).each do |j|
+        mx << [j] + [0] * (a.size)
+      end
+
+      (1..b.size).each do |i|
+        (1..a.size).each do |j|
+          if a[j-1] == b[i-1]
+            mx[i][j] = mx[i-1][j-1]
+          else
+            mx[i][j] = [
+              mx[i-1][j],
+              mx[i][j-1],
+              mx[i-1][j-1]
+            ].min + 1
+          end
+        end
+      end
+
+      mx[-1][-1]
+    }
+
+    class << self
+      def >>(body=:ok, opts={}, headers={})
+        opts.reverse_merge!({ status: 200 })
+        headers.reverse_merge!({
+          "Content-Type"      => "text/json",
+          "Content-Length"    => ("#{body.size}" rescue "0")
+        })
+
+        [opts[:status], headers, [body]]
+      end
 
       def route(verb, path, &blk)
         meta_def(conjugate(verb, path)) { instance_eval(&blk) }
       end
 
+      def conjugate(verb, path)
+        "immanent_#{verb}_#{path}"
+      end
+
       def ascertain(method, path)
-        deconjugate(method).
+        method.to_s.gsub(/immanent_\w*_/, "").
           split("/")[1..-1].
           zip(path.split("/")[1..-1]).
           map { |x, y|
@@ -67,34 +67,19 @@ class Immanence
           symbolize_keys
       end
 
-      def params
-        @params
-      end
-
-      def deconjugate(method)
-        method.to_s.gsub(/immanent_\w*_/, "")
-      end
-
-      def conjugate(verb, path)
-        "immanent_#{verb}_#{path}"
-      end
-
-      def caller(e)
-        { verb:       e["REQUEST_METHOD"].downcase,
-          path:       e["PATH_INFO"],
-          data:     I[e["rack.input"].read] }
+      def receiver
+        methods.grep(/immanent_/).map { |method|
+          { method: method, score: LEVENSHTEIN[method, conjugate(@request.verb, @request.path)] }
+        }.min_by { |x| x[:score] }[:method]
       end
 
       def call(e)
-        call = caller(e)
+        @request  = Request.new e["REQUEST_METHOD"].downcase, e["PATH_INFO"], I[e["rack.input"].read]
+        @params   = ascertain receiver, @request.path
 
-        receiver = methods.grep(/immanent_/).map { |method|
-          { method: method, score: LEVENSHTEIN[method, conjugate(call[:verb], call[:path])] }
-        }.min_by { |x| x[:score] }
-
-        @params = ascertain(receiver[:method], call[:path])
-
-        send(receiver[:method])
+        send receiver
+      rescue
+        self >> O[{ error: PROBLEM }]
       end
     end
   end
@@ -102,20 +87,20 @@ end
 
 class App < Immanence::Control
   route :get, "/notes/:id" do
-    re out params[:id]
+    self >> O[{ id: @params[:id] }]
   end
 
   route :get, "/notes/:note_id/paragraphs/:id" do
-    re out params
+    self >> O[params]
   end
 
   route :get, "/hello" do
     object = { hello: "World" }
 
-    re out object
+    self >> O[object]
   end
 
   route :get, "/new" do
-    re "new"
+    self >> "new"
   end
 end

@@ -18,7 +18,7 @@ class Application < Immanence::Control
   route :get, "/fields/:id" do
     self >> Field.find(@params[:id])
   end
-  
+
   route :post, "/fields" do
     self >> Field.create(@request.input)
   end

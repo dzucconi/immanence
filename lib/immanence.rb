@@ -3,6 +3,7 @@
 require "rack"
 require "oj"
 
+require "core_ext/kernel"
 require "core_ext/hash"
 require "core_ext/object"
 
@@ -10,10 +11,10 @@ module Immanence
   class Request < Struct.new(:verb, :path, :input); end
 
   class Control
-    I =-> i { Oj.load(i) }
-    O =-> o { Oj.dump(o, mode: :compat) }
+    I = λ { |i| Oj.load(i) }
+    O = λ { |o| Oj.dump(o, mode: :compat) }
 
-    LEVENSHTEIN =-> a, b {
+    LEVENSHTEIN = λ { |a, b|
       mx = [(0..a.size).to_a]
 
       (1..b.size).each do |j|
@@ -54,6 +55,18 @@ module Immanence
         meta_def(conjugate(verb, path)) { instance_eval &blk }
       end
 
+      def call(e)
+        @request  = Request.new e["REQUEST_METHOD"].downcase, e["PATH_INFO"], I[e["rack.input"].read]
+        @params   = ascertain receiver, @request.path
+
+        send receiver
+      rescue => ε
+        # [...] from a problem to the accidents that condition and resolve it.
+        self >> { error: ε }
+      end
+
+    private
+
       def conjugate(verb, path)
         "immanent_#{verb}_#{path}"
       end
@@ -70,19 +83,9 @@ module Immanence
       end
 
       def receiver
-        methods.grep(/immanent_/).map { |method|
-          { method: method, score: LEVENSHTEIN[method, conjugate(@request.verb, @request.path)] }
-        }.min_by { |x| x[:score] }[:method]
-      end
-
-      def call(e)
-        @request  = Request.new e["REQUEST_METHOD"].downcase, e["PATH_INFO"], I[e["rack.input"].read]
-        @params   = ascertain receiver, @request.path
-
-        send receiver
-      rescue => ε
-        # [...] from a problem to the accidents that condition and resolve it.
-        self >> { error: ε }
+        @receiver ||= methods.grep(/immanent_/).map { |method|
+          { method: method, Δ: LEVENSHTEIN[method, conjugate(@request.verb, @request.path)] }
+        }.min_by { |x| x[:Δ] }[:method]
       end
     end
   end

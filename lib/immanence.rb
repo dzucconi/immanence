@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require "rack"
 require "oj"
 
@@ -10,8 +12,6 @@ module Immanence
   class Control
     I =-> i { Oj.load(i) }
     O =-> o { Oj.dump(o, mode: :compat) }
-
-    PROBLEM = "[...] from a problem to the accidents that condition and resolve it."
 
     LEVENSHTEIN =-> a, b {
       mx = [(0..a.size).to_a]
@@ -80,8 +80,9 @@ module Immanence
         @params   = ascertain receiver, @request.path
 
         send receiver
-      rescue
-        self >> { error: PROBLEM }
+      rescue => ε
+        # [...] from a problem to the accidents that condition and resolve it.
+        self >> { error: ε }
       end
     end
   end

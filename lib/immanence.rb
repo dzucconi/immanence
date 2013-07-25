@@ -39,6 +39,7 @@ class Immanence
 
     class << self
       def >>(body=:ok, opts={}, headers={})
+        body = O[body]
         opts.reverse_merge!({ status: 200 })
         headers.reverse_merge!({
           "Content-Type"      => "text/json",
@@ -79,7 +80,7 @@ class Immanence
 
         send receiver
       rescue
-        self >> O[{ error: PROBLEM }]
+        self >> { error: PROBLEM }
       end
     end
   end
@@ -87,17 +88,17 @@ end
 
 class App < Immanence::Control
   route :get, "/notes/:id" do
-    self >> O[{ id: @params[:id] }]
+    self >> { id: @params[:id] }
   end
 
   route :get, "/notes/:note_id/paragraphs/:id" do
-    self >> O[params]
+    self >> params
   end
 
   route :get, "/hello" do
     object = { hello: "World" }
 
-    self >> O[object]
+    self >> object
   end
 
   route :get, "/new" do

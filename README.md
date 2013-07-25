@@ -22,7 +22,7 @@ class Application < Immanence::Control
   end
   
   route :post, "/fields" do
-    self >> Field.new(@request.input)
+    self >> Field.create(@request.input)
   end
 end
 ```

@@ -21,7 +21,7 @@ class Application < Immanence::Control
     self >> Field.find(@params[:id])
   end
   
-  route :post, "/absolute" do
+  route :post, "/fields" do
     self >> Field.new(@request.input)
   end
 end

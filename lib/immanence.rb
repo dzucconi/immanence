@@ -87,6 +87,10 @@ class Immanence
 end
 
 class App < Immanence::Control
+  route :post, "/input" do
+    self >> @request.input
+  end
+
   route :get, "/notes/:id" do
     self >> { id: @params[:id] }
   end

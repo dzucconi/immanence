@@ -4,7 +4,7 @@ require "oj"
 require "./lib/core_ext/hash"
 require "./lib/core_ext/object"
 
-class Immanence
+module Immanence
   class Request < Struct.new(:verb, :path, :input); end
 
   class Control
@@ -38,19 +38,20 @@ class Immanence
     }
 
     class << self
-      def >>(body=:ok, opts={}, headers={})
+      def >>(body=:ok, options={}, headers={})
         body = O[body]
-        opts.reverse_merge!({ status: 200 })
+
+        options.reverse_merge!({ status: 200 })
         headers.reverse_merge!({
           "Content-Type"      => "text/json",
           "Content-Length"    => ("#{body.size}" rescue "0")
         })
 
-        [opts[:status], headers, [body]]
+        [options[:status], headers, [body]]
       end
 
       def route(verb, path, &blk)
-        meta_def(conjugate(verb, path)) { instance_eval(&blk) }
+        meta_def(conjugate(verb, path)) { instance_eval &blk }
       end
 
       def conjugate(verb, path)
@@ -65,7 +66,7 @@ class Immanence
             { x[1..-1] => y } if x[0] == ":"
           }.compact.
           reduce({}, :merge).
-          symbolize_keys
+          deep_symbolize_keys
       end
 
       def receiver
@@ -83,29 +84,5 @@ class Immanence
         self >> { error: PROBLEM }
       end
     end
-  end
-end
-
-class App < Immanence::Control
-  route :post, "/input" do
-    self >> @request.input
-  end
-
-  route :get, "/notes/:id" do
-    self >> { id: @params[:id] }
-  end
-
-  route :get, "/notes/:note_id/paragraphs/:id" do
-    self >> params
-  end
-
-  route :get, "/hello" do
-    object = { hello: "World" }
-
-    self >> object
-  end
-
-  route :get, "/new" do
-    self >> "new"
   end
 end

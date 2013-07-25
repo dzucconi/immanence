@@ -43,6 +43,7 @@ module Immanence
         body = O[body]
 
         options.reverse_merge!({ status: 200 })
+
         headers.reverse_merge!({
           "Content-Type"      => "text/json",
           "Content-Length"    => ("#{body.size}" rescue "0")
@@ -67,21 +68,24 @@ module Immanence
 
     private
 
-      def conjugate(verb, path)
+      def conjugate(verb, path) # :nodoc:
         "immanent_#{verb}_#{path}"
       end
 
+      # @return [Hash] Hash of request parameters
       def ascertain(method, path)
-        method.to_s.gsub(/immanent_\w*_/, "").
-          split("/")[1..-1].
-          zip(path.split("/")[1..-1]).
-          map { |x, y|
-            { x[1..-1] => y } if x[0] == ":"
-          }.compact.
-          reduce({}, :merge).
-          deep_symbolize_keys
+        [method.to_s.gsub(/immanent_\w*_/, ""), path].
+
+        map     { |path| path.split("/")[1..-1] }.
+        let     { |x, y| x.zip(y) }.
+        select  { |x, y| x[0] == ":" }.
+        map     { |x, y| { x[1..-1] => y } }.
+
+        reduce({}, :merge).
+        deep_symbolize_keys
       end
 
+      # @return [String] most likely candidate method to invoke based on incoming route
       def receiver
         @receiver ||= methods.grep(/immanent_/).map { |method|
           { method: method, Δ: LEVENSHTEIN[method, conjugate(@request.verb, @request.path)] }

@@ -9,7 +9,7 @@
 >
 > —Arakawa and Madeline Gins
 
-**Immanence** is a DSL for handling web requests in Ruby, built on top of Rack. To execute routes it calculates the [Levenshtein distance](http://en.wikipedia.org/wiki/Levenshtein_distance) between incoming requests and routes defined in the DSL then executes the most likely candidate. *Something will always be executed.* Objects are rendered by calling `>>` on `self` with the object to be rendered as the argument. Objects are serialized into JSON via Oj. Incoming JSON is automatically parsed and available in the `@request` object.
+**Immanence** is a DSL for handling web requests in Ruby, built on top of Rack. To execute routes it calculates the [Levenshtein distance](http://en.wikipedia.org/wiki/Levenshtein_distance) between incoming requests and routes defined in the DSL then executes the most likely candidate. *Something will always be executed.* Objects are rendered by calling `>>` on `self` with the object to be rendered as the argument. Objects are encoded into JSON via Oj. Incoming JSON is automatically parsed and available in the `@request` object.
 
 This is less a useful piece of software and more a stylistic exercise.
 

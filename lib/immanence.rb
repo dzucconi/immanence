@@ -19,7 +19,7 @@ module Immanent
     def method_missing(method, *args, &block)
       @__request__.send(method, *args, &block)
     end
-  end
+  end # Request
 
   class Control
     I = λ { |i| Oj.load(i) }
@@ -109,6 +109,6 @@ module Immanent
           { method: method, Δ: LEVENSHTEIN[method, conjugate(request.request_method, request.path)] }
         }.min_by { |x| x[:Δ] }[:method]
       end
-    end
-  end
-end
+    end # self
+  end # Control
+end # Immanent

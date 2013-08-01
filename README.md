@@ -9,18 +9,20 @@
 >
 > —Arakawa and Madeline Gins
 
-**Immanence** is a DSL for handling web requests in Ruby, built on top of Rack. To execute routes it calculates the [Levenshtein distance](http://en.wikipedia.org/wiki/Levenshtein_distance) between incoming requests and routes defined in the DSL then executes the most likely candidate. *Something will always be executed.* Objects are rendered by calling `>>` on `self` with the object to be rendered as the argument. Object responses are encoded as JSON. Incoming JSON is automatically parsed and available in the `@request` object.
+**Immanence** is a DSL for handling web requests in Ruby, built on top of Rack. To execute routes it calculates the [Levenshtein distance](http://en.wikipedia.org/wiki/Levenshtein_distance) between incoming requests and routes defined through the DSL then executes the most likely candidate. *Something will always be executed.* Objects are rendered by calling `→` (alias `render`) with the object to be rendered as the argument. Object responses are encoded as JSON. Incoming JSON is automatically parsed and available in as the `input` object.
 
 What does it mean to discard transparent precision in favor of an immanent promiscuity?
 
 ```ruby
+# encoding: UTF-8
+
 class Application < Immanence::Control
   route :get, "/fields/:id" do
-    self >> Field.find(@params[:id])
+    → Field.find(params[:id])
   end
 
   route :post, "/fields" do
-    self >> Field.create(@request.input)
+    → Field.create(input)
   end
 end
 ```

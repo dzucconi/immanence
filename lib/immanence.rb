@@ -7,7 +7,7 @@ require "core_ext/kernel"
 require "core_ext/hash"
 require "core_ext/object"
 
-module Immanent
+module Immanence
   class Request
     attr_reader :input
 
@@ -54,6 +54,9 @@ module Immanent
       def request() @request end
       def input() request.input end
       def params() ascertain(receiver, request.path).reverse_merge!(request.params) end
+
+      # Naive implementation
+      def before(&blk) yield end
 
       # Interface with Rack
       def call(env)
@@ -111,4 +114,6 @@ module Immanent
       end
     end # self
   end # Control
-end # Immanent
+end # Immanence
+
+Immanent = Immanence

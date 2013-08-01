@@ -1,3 +1,3 @@
-module Immanence
+module Immanent
   VERSION = "0.1.1"
 end

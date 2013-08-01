@@ -4,7 +4,7 @@ lib = File.expand_path("../lib", __FILE__)
 
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-require "immanence/version"
+require "immanent/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "immanence"

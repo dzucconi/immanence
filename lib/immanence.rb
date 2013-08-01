@@ -96,7 +96,7 @@ module Immanent
 
         map     { |path| path.split("/")[1..-1] }.
         let     { |x, y| x.zip(y) }.
-        select  { |x, y| x[0] == ":" }.
+        select  { |x, _| x[0] == ":" }.
         map     { |x, y| { x[1..-1] => y } }.
 
         reduce({}, :merge).

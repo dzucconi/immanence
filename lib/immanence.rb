@@ -8,13 +8,24 @@ require "core_ext/hash"
 require "core_ext/object"
 
 module Immanence
-  class Request < Struct.new(:verb, :path, :input); end
+  class Request
+    attr_reader :input
+
+    def initialize(request, input)
+      @__request__  = request
+      @input = input
+    end
+
+    def method_missing(method, *args, &block)
+      @__request__.send(method, *args, &block)
+    end
+  end
 
   class Control
     I = λ { |i| Oj.load(i) }
     O = λ { |o| Oj.dump(o, mode: :compat) }
 
-    LEVENSHTEIN = λ { |a, b|
+    LEVENSHTEIN = λ do |a, b|
       [(0..a.size).to_a].tap { |mx|
         (1..b.size).each do |j|
           mx << [j] + [0] * (a.size)
@@ -34,35 +45,44 @@ module Immanence
           end
         end
       }[-1][-1]
-    }
+    end
 
     class << self
-      def >>(body=:ok, options={}, headers={})
-        body = O[body]
+      alias_method :delegate_to, :send
 
-        options.reverse_merge!({ status: 200 })
+      # Convenience methods
+      def request() @request end
+      def input() request.input end
+      def params() ascertain(receiver, request.path).reverse_merge!(request.params) end
 
-        headers.reverse_merge!({
-          "Content-Type"      => "text/json",
-          "Content-Length"    => ("#{body.size}" rescue "0")
-        })
+      # Interface with Rack
+      def call(env)
+        @request = Request.new(Rack::Request.new(env), I[env["rack.input"]])
 
-        [options[:status], headers, [body]]
+        delegate_to receiver
+      rescue => ε
+        → ({ error: ε }),
+            { status: 500, headers:
+              { "X-Message" => "[...] from a problem to the accidents that condition and resolve it." } }
       end
 
+      # Define routes in the application
       def route(verb, path, &blk)
         meta_def(conjugate(verb, path)) { instance_eval &blk }
       end
 
-      def call(e)
-        @request  = Request.new e["REQUEST_METHOD"].downcase, e["PATH_INFO"], I[e["rack.input"].read]
-        @params   = ascertain receiver, @request.path
+      # Render responses
+      def render(body=:ok, options={})
+        options.reverse_merge!({ status: 200 })
 
-        send receiver
-      rescue => ε
-        # [...] from a problem to the accidents that condition and resolve it.
-        self >> { error: ε }
+        options[:headers] ||= {}
+        options[:headers].reverse_merge!({
+          "Content-Type" => "text/json", "X-Framework" => "Immanence" })
+
+        Rack::Response.new(O[body], options[:status], options[:headers]).finish
       end
+
+      alias_method :→, :render
 
     private
 
@@ -70,7 +90,7 @@ module Immanence
         "immanent_#{verb}_#{path}"
       end
 
-      # @return [Hash] Hash of request parameters
+      # @return [Hash] Hash of parameters gleaned from request signature
       def ascertain(method, path)
         [method.to_s.gsub(/immanent_\w*_/, ""), path].
 
@@ -86,7 +106,7 @@ module Immanence
       # @return [String] most likely candidate method to invoke based on incoming route
       def receiver
         @receiver ||= methods.grep(/immanent_/).map { |method|
-          { method: method, Δ: LEVENSHTEIN[method, conjugate(@request.verb, @request.path)] }
+          { method: method, Δ: LEVENSHTEIN[method, conjugate(request.request_method, request.path)] }
         }.min_by { |x| x[:Δ] }[:method]
       end
     end

@@ -2,37 +2,37 @@
 
 require File.expand_path(File.dirname(__FILE__) + "/spec_helper")
 
-describe "Immanence" do
+describe "Immanent" do
   before do
-    class Application < Immanence::Control
-      route :get, "/resource/:id" do; end
+    class Application < Immanent::Control
+      route :get, "/resource/:id" do
+        render ({ no: :future })
+      end
     end
-
-    @immanence  = Immanence::Control
-    @Δ          = @immanence::LEVENSHTEIN
   end
+
   it "should calculate the Levenshtein difference between two strings (0)" do
-    @Δ["kitten", "sitten"].should eq 1
+    Immanent::Control::LEVENSHTEIN["kitten", "sitten"].should eq 1
   end
 
   it "should calculate the Levenshtein difference between two strings (1)" do
-    @Δ["sitten", "sittin"].should eq 1
+    Immanent::Control::LEVENSHTEIN["sitten", "sittin"].should eq 1
   end
 
   it "should calculate the Levenshtein difference between two strings (2)" do
-    @Δ["sittin", "sitting"].should eq 1
+    Immanent::Control::LEVENSHTEIN["sittin", "sitting"].should eq 1
   end
 
   it "should conjugate a verb and path into a method name" do
-    @immanence.send(:conjugate, :get, "/resource/:id").should eq "immanent_get_/resource/:id"
+    Immanent::Control.send(:conjugate, :get, "/resource/:id").should eq "immanent_get_/resource/:id"
   end
 
   it "should extract parameters out of the request path" do
-    @immanence.send(:ascertain, "immanent_get_/resource/:id", "/resource/1000").should eq({ id: "1000" })
+    Immanent::Control.send(:ascertain, "immanent_get_/resource/:id", "/resource/1000").should eq({ id: "1000" })
   end
 
   it "should be able to extract multiple parameters out of the request path" do
-    @immanence.send(:ascertain, "immanent_get_/resource/:resource_id/child/:id", "/resource/1000/child/10").should eq({ resource_id: "1000", id: "10" })
+    Immanent::Control.send(:ascertain, "immanent_get_/resource/:resource_id/child/:id", "/resource/1000/child/10").should eq({ resource_id: "1000", id: "10" })
   end
 
   it "should provide a DSL for defining routes" do
@@ -40,10 +40,10 @@ describe "Immanence" do
   end
 
   it "should have a default response" do
-    Application.>>.should eq([200, {"Content-Type"=>"text/json", "Content-Length"=>"4"}, ["\"ok\""]])
+    Application.render[0].should eq(Rack::Response.new("\"ok\"").finish[0])
   end
 
-  it "should be able to respond with a JSON object" do
-    Application.>>({ id: "1000" }).should eq([200, {"Content-Type"=>"text/json", "Content-Length"=>"13"}, ["{\"id\":\"1000\"}"]])
+  it "should respond with the route definition, a JSON string" do
+    Application.send("immanent_get_/resource/:id").last.body.should eq(["{\"no\":\"future\"}"])
   end
 end

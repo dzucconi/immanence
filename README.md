@@ -16,7 +16,7 @@ What does it mean to discard transparent precision in favor of immanent promiscu
 ```ruby
 # encoding: UTF-8
 
-class Application < Immanence::Control
+class Application < Immanent::Control
   route :get, "/fields/:id" do
     → Field.find(params[:id])
   end

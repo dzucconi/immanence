@@ -7,7 +7,7 @@ require "core_ext/kernel"
 require "core_ext/hash"
 require "core_ext/object"
 
-module Immanence
+module Immanent
   class Request
     attr_reader :input
 
